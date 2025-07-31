@@ -41,39 +41,6 @@ window.addEventListener('scroll', () => {
     }
 });
 
-// Contact form handling
-const contactForm = document.querySelector('.contact-form');
-contactForm.addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Get form data
-    const formData = new FormData(this);
-    const name = formData.get('name');
-    const email = formData.get('email');
-    const company = formData.get('company');
-    const message = formData.get('message');
-    
-    // Simple validation
-    if (!name || !email || !message) {
-        alert('Please fill in all required fields.');
-        return;
-    }
-    
-    // Simulate form submission
-    const submitBtn = this.querySelector('.btn-primary');
-    const originalText = submitBtn.textContent;
-    
-    submitBtn.textContent = 'Sending...';
-    submitBtn.disabled = true;
-    
-    setTimeout(() => {
-        alert('Thank you for your message! We\'ll get back to you soon.');
-        this.reset();
-        submitBtn.textContent = originalText;
-        submitBtn.disabled = false;
-    }, 2000);
-});
-
 // Intersection Observer for animations
 const observerOptions = {
     threshold: 0.1,
@@ -90,7 +57,7 @@ const observer = new IntersectionObserver((entries) => {
 }, observerOptions);
 
 // Observe elements for animation
-document.querySelectorAll('.service-card, .portfolio-item, .stat').forEach(el => {
+document.querySelectorAll('.stat-card, .service-card, .community-card, .testimonial-card').forEach(el => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(30px)';
     el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
@@ -98,7 +65,7 @@ document.querySelectorAll('.service-card, .portfolio-item, .stat').forEach(el =>
 });
 
 // Counter animation for stats
-const animateCounter = (element, target) => {
+const animateCounter = (element, target, suffix = '') => {
     let current = 0;
     const increment = target / 100;
     const timer = setInterval(() => {
@@ -107,7 +74,15 @@ const animateCounter = (element, target) => {
             current = target;
             clearInterval(timer);
         }
-        element.textContent = Math.floor(current) + '+';
+        if (suffix === 'billion') {
+            element.textContent = `£${Math.floor(current)} billion`;
+        } else if (suffix === '+') {
+            element.textContent = `${Math.floor(current)}+`;
+        } else if (suffix === 'in6') {
+            element.textContent = `1 in ${Math.floor(current)}`;
+        } else {
+            element.textContent = Math.floor(current) + suffix;
+        }
     }, 20);
 };
 
@@ -115,17 +90,29 @@ const animateCounter = (element, target) => {
 const statsObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            const statNumbers = entry.target.querySelectorAll('.stat h3');
-            statNumbers.forEach(stat => {
-                const target = parseInt(stat.textContent);
-                animateCounter(stat, target);
+            const statCards = entry.target.querySelectorAll('.stat-card');
+            statCards.forEach((card, index) => {
+                const h3 = card.querySelector('h3');
+                const originalText = h3.textContent;
+                
+                setTimeout(() => {
+                    if (index === 0) { // 1 in 6 UK
+                        animateCounter(h3, 6, 'in6');
+                    } else if (index === 1) { // £48 billion
+                        animateCounter(h3, 48, 'billion');
+                    } else if (index === 2) { // Cultural (no animation)
+                        // Keep original text
+                    } else if (index === 3) { // 300+
+                        animateCounter(h3, 300, '+');
+                    }
+                }, index * 200);
             });
             statsObserver.unobserve(entry.target);
         }
     });
 }, { threshold: 0.5 });
 
-const statsSection = document.querySelector('.stats');
+const statsSection = document.querySelector('.stats-grid');
 if (statsSection) {
     statsObserver.observe(statsSection);
 }
@@ -139,4 +126,27 @@ window.addEventListener('load', () => {
 document.addEventListener('DOMContentLoaded', () => {
     document.body.style.opacity = '0';
     document.body.style.transition = 'opacity 0.5s ease';
+});
+
+// Add click handlers for contact methods
+document.addEventListener('DOMContentLoaded', () => {
+    // Phone number click handler
+    const phoneElements = document.querySelectorAll('[href^="tel:"]');
+    phoneElements.forEach(el => {
+        el.addEventListener('click', (e) => {
+            // Allow default behavior for tel: links
+        });
+    });
+
+    // WhatsApp link simulation
+    const whatsappLinks = document.querySelectorAll('.social-link');
+    whatsappLinks.forEach(link => {
+        if (link.textContent.includes('WhatsApp')) {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                // In a real implementation, this would open WhatsApp
+                alert('WhatsApp integration would open here');
+            });
+        }
+    });
 });
